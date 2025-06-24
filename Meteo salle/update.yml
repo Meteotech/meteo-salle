@@ -1,0 +1,37 @@
+name: Mise à jour météo
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Tous les jours à 6h du matin UTC
+  workflow_dispatch:
+
+jobs:
+  update-weather:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout du dépôt
+      uses: actions/checkout@v3
+
+    - name: Installer Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Installer les dépendances
+      run: pip install beautifulsoup4 requests
+
+    - name: Exécuter le script météo
+      env:
+        API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+      run: |
+        echo "API_KEY = '${{ secrets.OPENWEATHER_API_KEY }}'" > key.py
+        python update_meteo.py
+
+    - name: Commit et push des changements
+      run: |
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+        git add index.html
+        git commit -m "Mise à jour météo automatique"
+        git push
